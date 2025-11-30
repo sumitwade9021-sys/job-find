@@ -6,7 +6,7 @@ import smtplib
 
 def fetch_jobs_from_rss(url, max_items=10):
     try:
-        resp = requests.get(url, timeout=20)
+        resp = requests.get(url, timeout=20, headers={"User-Agent": "Mozilla/5.0"})
         soup = BeautifulSoup(resp.content, "xml")
         items = soup.find_all("item")[:max_items]
         jobs = []
@@ -49,6 +49,11 @@ def main():
     for url in RSS_FEEDS:
         all_jobs.extend(fetch_jobs_from_rss(url))
 
+    # Remove duplicate links
+    unique = {job["link"]: job for job in all_jobs}
+    all_jobs = list(unique.values())
+
+    print(f"Collected {len(all_jobs)} jobs")
     email_body = format_email(all_jobs)
     send_email("Daily Entry-Level DevOps Job Alerts", email_body)
 
